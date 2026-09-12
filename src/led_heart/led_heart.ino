@@ -1,6 +1,4 @@
 /*
-  Arduino LED Heart - 16 LEDs
-  Target: Arduino Nano V3 / ATmega328P, 5 V, 16 MHz
 
   LED 1..12 -> D2..D13
   LED 13    -> A0
