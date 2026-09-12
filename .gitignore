@@ -1,0 +1,23 @@
+# Arduino and ESP-IDF build outputs
+build/
+*.bin
+*.elf
+*.hex
+*.map
+
+# ESP-IDF generated configuration
+sdkconfig
+sdkconfig.old
+managed_components/
+
+# IDE and operating-system files
+.idea/
+.vscode/
+*.code-workspace
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and temporary files
+*.log
+*.tmp
