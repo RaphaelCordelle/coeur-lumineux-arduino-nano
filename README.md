@@ -6,13 +6,6 @@
 
 Cœur de 16 LED roses pilotées individuellement par un Arduino Nano (ATmega328P). Le montage est réalisé à la main sur plaque à pastilles, avec une résistance de 220 Ω par LED et une masse commune.
 
-## État du projet
-
-- montage assemblé puis partiellement recâblé après les premiers essais ;
-- animations présentes dans le firmware ;
-- bouton géré dans le code, intégration physique encore en cours ;
-- contrôle complet des 16 LED à refaire après le recâblage.
-
 ## Matériel
 
 - Arduino Nano V3, 5 V / 16 MHz ;
@@ -57,8 +50,6 @@ Le diagnostic a été fait LED par LED avec :
 - reprise des soudures et remplacement de liaisons nues par du fil étamé ou isolé ;
 - vérification du port série, du CH340 et du bootloader du Nano.
 
-Le courant total du montage reste à mesurer avant une utilisation prolongée.
-
 ## Compiler et téléverser
 
 Ouvrir le sketch dans l’IDE Arduino, choisir **Arduino Nano / ATmega328P**, puis sélectionner le port série. Sur certains clones, l’option **ATmega328P (Old Bootloader)** est nécessaire.
@@ -70,10 +61,3 @@ Ouvrir le sketch dans l’IDE Arduino, choisir **Arduino Nano / ATmega328P**, pu
   <img src="docs/images/soudure-en-cours.jpg" alt="Soudure de la plaque à pastilles" width="30%">
   <img src="docs/images/recablage-resistances.jpg" alt="Recâblage avec résistances et fils isolés" width="30%">
 </p>
-
-## Améliorations prévues
-
-- terminer le bouton et refaire la validation complète ;
-- relever le courant par LED et le courant total ;
-- remplacer les temporisations bloquantes par une petite machine à états ;
-- dessiner un schéma électrique propre.
