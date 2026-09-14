@@ -1,31 +1,30 @@
-/*
-
-  LED 1..12 -> D2..D13
-  LED 13    -> A0
-  LED 14    -> A1
-  LED 15    -> A2
-  LED 16    -> A3
-
-  Button: A4 -> push button -> GND (INPUT_PULLUP)
-
-  Each LED:
-  GPIO -> 220 ohm resistor -> LED anode
-  LED cathode -> common GND
-*/
-
 constexpr byte LED_COUNT = 16;
 constexpr byte REFRESH_GROUP_COUNT = 4;
 constexpr unsigned int GROUP_TIME_US = 1200;
+
 constexpr byte BUTTON_PIN = A4;
 constexpr byte RANDOM_SEED_PIN = A5;
+
 constexpr unsigned long LONG_PRESS_MS = 1300;
+constexpr unsigned long DEBOUNCE_MS = 25;
 
 const byte LED_PINS[LED_COUNT] = {
   2, 3, 4, 5, 6, 7, 8, 9,
-  10, 11, 12, 13, A0, A1, A2, A3
+  10, 11, 12, 13,
+  A0, A1, A2, A3
 };
 
 bool heartEnabled = true;
+bool specialAnimationRequested = false;
+bool specialAnimationRunning = false;
+
+bool lastRawButtonState = HIGH;
+bool stableButtonState = HIGH;
+
+unsigned long lastButtonChangeTime = 0;
+unsigned long buttonPressStarted = 0;
+
+bool longPressHandled = false;
 
 void allOff() {
   for (byte i = 0; i < LED_COUNT; ++i) {
@@ -41,12 +40,96 @@ void showOneLed(byte index) {
   }
 }
 
-// Refreshes several LEDs in four interleaved groups.
-void showMask(uint16_t mask, unsigned long durationMs) {
-  const unsigned long startedAt = millis();
+void checkButton() {
+  bool rawState = digitalRead(BUTTON_PIN);
+  unsigned long now = millis();
+
+  if (rawState != lastRawButtonState) {
+    lastRawButtonState = rawState;
+    lastButtonChangeTime = now;
+  }
+
+  if ((now - lastButtonChangeTime >= DEBOUNCE_MS) &&
+      (rawState != stableButtonState)) {
+
+    stableButtonState = rawState;
+
+    if (stableButtonState == LOW) {
+      buttonPressStarted = now;
+      longPressHandled = false;
+    } else {
+      if (!longPressHandled &&
+          heartEnabled &&
+          !specialAnimationRunning) {
+        specialAnimationRequested = true;
+      }
+    }
+  }
+
+  if (stableButtonState == LOW &&
+      !longPressHandled &&
+      now - buttonPressStarted >= LONG_PRESS_MS) {
+
+    longPressHandled = true;
+    heartEnabled = !heartEnabled;
+    specialAnimationRequested = false;
+
+    if (!heartEnabled) {
+      allOff();
+    }
+  }
+}
+
+bool responsiveDelay(
+  unsigned long durationMs,
+  bool stopForSpecialAnimation = true
+) {
+  unsigned long startedAt = millis();
+
+  while (millis() - startedAt < durationMs) {
+    checkButton();
+
+    if (!heartEnabled) {
+      allOff();
+      return false;
+    }
+
+    if (stopForSpecialAnimation &&
+        specialAnimationRequested &&
+        !specialAnimationRunning) {
+      allOff();
+      return false;
+    }
+
+    delay(1);
+  }
+
+  return true;
+}
+
+bool showMask(
+  uint16_t mask,
+  unsigned long durationMs,
+  bool stopForSpecialAnimation = true
+) {
+  unsigned long startedAt = millis();
 
   while (millis() - startedAt < durationMs) {
     for (byte group = 0; group < REFRESH_GROUP_COUNT; ++group) {
+      checkButton();
+
+      if (!heartEnabled) {
+        allOff();
+        return false;
+      }
+
+      if (stopForSpecialAnimation &&
+          specialAnimationRequested &&
+          !specialAnimationRunning) {
+        allOff();
+        return false;
+      }
+
       allOff();
 
       for (byte i = group; i < LED_COUNT; i += REFRESH_GROUP_COUNT) {
@@ -60,139 +143,149 @@ void showMask(uint16_t mask, unsigned long durationMs) {
   }
 
   allOff();
+  return true;
 }
 
 uint16_t allLedsMask() {
-  return static_cast<uint16_t>((1UL << LED_COUNT) - 1UL);
+  return static_cast<uint16_t>(
+    (1UL << LED_COUNT) - 1UL
+  );
 }
 
-void chase(byte repetitions) {
+bool chase(byte repetitions) {
   for (byte repetition = 0; repetition < repetitions; ++repetition) {
     for (byte i = 0; i < LED_COUNT; ++i) {
       showOneLed(i);
-      delay(75);
+
+      if (!responsiveDelay(75, false)) {
+        allOff();
+        return false;
+      }
     }
   }
 
   allOff();
+  return true;
 }
 
-void fillHeart() {
+bool fillHeart(bool stopForSpecialAnimation = true) {
   uint16_t mask = 0;
 
   for (byte i = 0; i < LED_COUNT; ++i) {
     mask |= static_cast<uint16_t>(1UL << i);
-    showMask(mask, 90);
+
+    if (!showMask(mask, 90, stopForSpecialAnimation)) {
+      return false;
+    }
   }
 
-  showMask(allLedsMask(), 350);
+  return showMask(
+    allLedsMask(),
+    350,
+    stopForSpecialAnimation
+  );
 }
 
-void heartbeat() {
-  showMask(allLedsMask(), 110);
-  allOff();
-  delay(90);
+bool heartbeat(bool stopForSpecialAnimation = true) {
+  if (!showMask(allLedsMask(), 110, stopForSpecialAnimation)) {
+    return false;
+  }
 
-  showMask(allLedsMask(), 180);
   allOff();
-  delay(350);
+
+  if (!responsiveDelay(90, stopForSpecialAnimation)) {
+    return false;
+  }
+
+  if (!showMask(allLedsMask(), 180, stopForSpecialAnimation)) {
+    return false;
+  }
+
+  allOff();
+
+  return responsiveDelay(
+    350,
+    stopForSpecialAnimation
+  );
 }
 
-void sparkle() {
+bool sparkle() {
   for (byte i = 0; i < 20; ++i) {
     const byte firstLed = random(LED_COUNT);
     const byte secondLed = random(LED_COUNT);
+
     const uint16_t mask =
       static_cast<uint16_t>(1UL << firstLed) |
       static_cast<uint16_t>(1UL << secondLed);
 
-    showMask(mask, 80);
-    delay(35);
+    if (!showMask(mask, 80, false)) {
+      return false;
+    }
+
+    if (!responsiveDelay(35, false)) {
+      return false;
+    }
   }
+
+  return true;
 }
 
 void runSpecialAnimation() {
+  specialAnimationRunning = true;
+  specialAnimationRequested = false;
+
   allOff();
-  delay(150);
 
-  chase(2);
-  delay(120);
+  if (!responsiveDelay(150, false)) goto animationEnd;
+  if (!chase(2)) goto animationEnd;
+  if (!responsiveDelay(120, false)) goto animationEnd;
+  if (!fillHeart(false)) goto animationEnd;
+  if (!responsiveDelay(250, false)) goto animationEnd;
+  if (!heartbeat(false)) goto animationEnd;
+  if (!heartbeat(false)) goto animationEnd;
+  if (!sparkle()) goto animationEnd;
+  if (!showMask(allLedsMask(), 900, false)) goto animationEnd;
 
-  fillHeart();
-  delay(250);
-
-  heartbeat();
-  heartbeat();
-  sparkle();
-
-  showMask(allLedsMask(), 900);
+animationEnd:
   allOff();
+  specialAnimationRunning = false;
+  specialAnimationRequested = false;
 }
 
-// Simulates breathing without relying on hardware PWM on every output.
 void breathe() {
   for (int pulseTime = 12; pulseTime >= 3; --pulseTime) {
     for (byte pulse = 0; pulse < 3; ++pulse) {
-      showMask(allLedsMask(), pulseTime);
+      if (!showMask(allLedsMask(), pulseTime)) {
+        return;
+      }
+
       allOff();
-      delay(pulseTime);
+
+      if (!responsiveDelay(pulseTime)) {
+        return;
+      }
     }
   }
 
-  delay(150);
+  if (!responsiveDelay(150)) {
+    return;
+  }
 
   for (int pulseTime = 3; pulseTime <= 12; ++pulseTime) {
     for (byte pulse = 0; pulse < 3; ++pulse) {
-      showMask(allLedsMask(), pulseTime);
+      if (!showMask(allLedsMask(), pulseTime)) {
+        return;
+      }
+
       allOff();
-      delay(pulseTime);
+
+      if (!responsiveDelay(pulseTime)) {
+        return;
+      }
     }
   }
 
-  delay(300);
-}
-
-bool isButtonPressed() {
-  return digitalRead(BUTTON_PIN) == LOW;
-}
-
-void handleButton() {
-  if (!isButtonPressed()) {
-    return;
-  }
-
-  const unsigned long pressStartedAt = millis();
-  delay(30);
-
-  if (!isButtonPressed()) {
-    return;
-  }
-
-  while (isButtonPressed()) {
-    if (millis() - pressStartedAt > LONG_PRESS_MS) {
-      heartEnabled = !heartEnabled;
-      allOff();
-
-      if (heartEnabled) {
-        showMask(allLedsMask(), 300);
-      }
-
-      while (isButtonPressed()) {
-        delay(10);
-      }
-
-      delay(100);
-      return;
-    }
-
-    delay(10);
-  }
-
-  if (heartEnabled) {
-    runSpecialAnimation();
-  }
-
-  delay(100);
+  responsiveDelay(300);
 }
 
 void setup() {
@@ -205,19 +298,25 @@ void setup() {
   randomSeed(analogRead(RANDOM_SEED_PIN));
 
   delay(500);
-  fillHeart();
-  heartbeat();
+
+  fillHeart(false);
+  heartbeat(false);
 }
 
 void loop() {
-  handleButton();
+  checkButton();
 
   if (!heartEnabled) {
     allOff();
-    delay(10);
+    checkButton();
+    delay(2);
+    return;
+  }
+
+  if (specialAnimationRequested) {
+    runSpecialAnimation();
     return;
   }
 
   breathe();
-  handleButton();
 }

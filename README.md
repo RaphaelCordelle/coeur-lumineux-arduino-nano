@@ -6,6 +6,8 @@
 
 Cœur de 16 LED roses pilotées individuellement par un Arduino Nano (ATmega328P). Le montage est réalisé à la main sur plaque à pastilles, avec une résistance de 220 Ω par LED et une masse commune.
 
+La version finale est fonctionnelle : les 16 LED et le bouton sont gérés par le firmware.
+
 ## Matériel
 
 - Arduino Nano V3, 5 V / 16 MHz ;
@@ -16,6 +18,15 @@ Cœur de 16 LED roses pilotées individuellement par un Arduino Nano (ATmega328P
 - alimentation et programmation par USB.
 
 Chaque anode est reliée à une sortie GPIO via sa propre résistance. Les cathodes partagent la même masse.
+
+## Choix de câblage
+
+- La masse commune regroupe le retour des 16 cathodes vers GND et simplifie le câblage.
+- Chaque LED possède sa résistance de 220 Ω pour limiter son courant indépendamment.
+- Chaque anode possède son propre GPIO, ce qui permet de piloter les LED indépendamment pour les animations.
+- A0 à A3 sont utilisés comme sorties numériques afin de disposer des 16 GPIO nécessaires.
+- Le bouton est câblé entre A4 et GND avec `INPUT_PULLUP`, ce qui utilise la résistance de tirage interne de l’ATmega328P et évite une résistance externe.
+- Sur la plaque à pastilles, les fils isolés peuvent se croiser ou se superposer tant que leurs conducteurs ne sont pas en contact électrique.
 
 ## Brochage
 
@@ -55,6 +66,8 @@ Le diagnostic a été fait LED par LED avec :
 Ouvrir le sketch dans l’IDE Arduino, choisir **Arduino Nano / ATmega328P**, puis sélectionner le port série. Sur certains clones, l’option **ATmega328P (Old Bootloader)** est nécessaire.
 
 ## Photos de fabrication
+
+Le dossier [`docs/`](docs/) regroupe les photos du montage et des différentes étapes de fabrication.
 
 <p align="center">
   <img src="docs/images/premier-cablage.jpg" alt="Premier câblage avec pattes de composants" width="30%">
