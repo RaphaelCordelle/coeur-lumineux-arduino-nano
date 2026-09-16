@@ -1,7 +1,7 @@
 # Cœur lumineux — Arduino Nano
 
 <p align="center">
-  <img src="docs/images/prototype-face-avant.jpg" alt="Prototype du cœur lumineux sur plaque à pastilles" width="520">
+  <img src="docs/images/coeur-termine-face-avant.jpg" alt="Cœur lumineux terminé sur plaque à pastilles" width="520">
 </p>
 
 Cœur de 16 LED roses pilotées individuellement par un Arduino Nano (ATmega328P). Le montage est réalisé à la main sur plaque à pastilles, avec une résistance de 220 Ω par LED et une masse commune.
@@ -49,6 +49,8 @@ Le sketch principal est [`src/led_heart/led_heart.ino`](src/led_heart/led_heart.
 
 Animations codées : remplissage progressif, double battement, chenillard, scintillement aléatoire et respiration. Un appui court lance la séquence ; un appui long active ou coupe l’animation au repos. Aucune bibliothèque externe n’est nécessaire.
 
+[Voir la vidéo de démonstration, sans son](docs/videos/coeur-led-demonstration-sans-son.mp4).
+
 ## Mise au point
 
 Les principaux défauts venaient du câblage : faux contacts, conducteurs nus qui se croisaient, pastilles abîmées au dessoudage et mauvais contacts après reprise.
@@ -67,10 +69,10 @@ Ouvrir le sketch dans l’IDE Arduino, choisir **Arduino Nano / ATmega328P**, pu
 
 ## Photos de fabrication
 
-Le dossier [`docs/`](docs/) regroupe les photos du montage et des différentes étapes de fabrication.
+Le dossier [`docs/`](docs/) regroupe les photos du montage et la vidéo de démonstration.
 
 <p align="center">
   <img src="docs/images/premier-cablage.jpg" alt="Premier câblage avec pattes de composants" width="30%">
   <img src="docs/images/soudure-en-cours.jpg" alt="Soudure de la plaque à pastilles" width="30%">
-  <img src="docs/images/recablage-resistances.jpg" alt="Recâblage avec résistances et fils isolés" width="30%">
+  <img src="docs/images/coeur-termine-face-arriere.jpg" alt="Câblage au dos du montage terminé" width="30%">
 </p>
