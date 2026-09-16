@@ -49,7 +49,9 @@ Le sketch principal est [`src/led_heart/led_heart.ino`](src/led_heart/led_heart.
 
 Animations codées : remplissage progressif, double battement, chenillard, scintillement aléatoire et respiration. Un appui court lance la séquence ; un appui long active ou coupe l’animation au repos. Aucune bibliothèque externe n’est nécessaire.
 
-[Voir la vidéo de démonstration, sans son](docs/videos/coeur-led-demonstration-sans-son.mp4).
+Démonstration sans son :
+
+https://github.com/user-attachments/assets/6a4e65ad-f4cb-412a-a8eb-bb37b0b1a9c9
 
 ## Mise au point
 
