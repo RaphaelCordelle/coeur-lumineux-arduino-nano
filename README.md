@@ -6,8 +6,6 @@
 
 Cœur de 16 LED roses pilotées individuellement par un Arduino Nano (ATmega328P). Le montage est réalisé à la main sur plaque à pastilles, avec une résistance de 220 Ω par LED et une masse commune.
 
-La version finale est fonctionnelle : les 16 LED et le bouton sont gérés par le firmware.
-
 ## Matériel
 
 - Arduino Nano V3, 5 V / 16 MHz ;
